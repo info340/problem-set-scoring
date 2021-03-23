@@ -11,6 +11,7 @@
   "license": "ISC",
   "devDependencies": {},
   "dependencies": {
+    "@octokit/auth-token": "^2.4.0",
     "@octokit/rest": "^15.9.4",
     "csv-parse": "^2.5.0",
     "lodash": "^4.17.15",

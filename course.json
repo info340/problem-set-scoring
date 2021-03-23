@@ -1,47 +1,46 @@
 {
-  "canvas_id": 1223074,
-  "github_org": "info340a-au18",
+  "canvas_id": 1434924,
+  "github_org": "info340-wi21",
   "assignments": [
     {
       "repo_slug": "problem-01",
-      "canvas_id": 4373303
+      "canvas_id": 5909032
     },
     {
       "repo_slug": "problem-02",
-      "canvas_id": 4373304
+      "canvas_id": 5909033
     },
     {
       "repo_slug": "problem-03",
-      "canvas_id":4373305
+      "canvas_id":5909034
     },
     {
       "repo_slug": "problem-04",
-      "canvas_id":4373306
+      "canvas_id":5909035
     },
     {
       "repo_slug": "problem-05",
-      "canvas_id":4373307
+      "canvas_id":5909036
     },
     {
       "repo_slug": "problem-06",
-      "canvas_id":4373308
+      "canvas_id":5909037
     },
     {
       "repo_slug": "problem-07",
-      "canvas_id":4373309
+      "canvas_id":5909038
     },
     {
       "repo_slug":"problem-08",
-      "canvas_id":4373310
+      "canvas_id":5909039
     },
-
     {
       "repo_slug":"problem-09",
-      "canvas_id":4373296
+      "canvas_id":5909040
     },
     {
       "repo_slug":"problem-10",
-      "canvas_id":4373297
+      "canvas_id":5909041
     }
   ]
 }

@@ -5,6 +5,20 @@ const request = require('request-promise');
 const _ = require('lodash');
 
 //authentication setup
+// const Octokit = require('@octokit/rest')();
+// const { createTokenAuth } = require("@octokit/auth-token");
+// const auth = createTokenAuth(fs.readFileSync('./github.token').toString());
+// const authentication = await auth();
+
+// const octokit = new Octokit({
+//   auth: auth
+// });
+
+// // octokit.authenticate({
+// //   type: 'oauth',
+// //   token: fs.readFileSync('./github.token').toString()
+// // })
+
 const octokit = require('@octokit/rest')();
 octokit.authenticate({
   type: 'oauth',
@@ -20,10 +34,12 @@ const CANVAS_KEY = fs.readFileSync('./canvas.key').toString();
 const COURSE = require('./course.json');
 
 //get single assignment from command line args (as -p argument; specify repo slug)
+//get score from assignment (as -s, percentage number)
 const args = require('minimist')(process.argv.slice(2));
 if(args.p) {
   COURSE.assignments = COURSE.assignments.filter(a => a.repo_slug == args.p)
 }
+const SCORE = args.s || 100
 
 
 /** Scoring Script **/
@@ -48,14 +64,20 @@ async function scoreSubmission(students, assignment){
     const checks = await octokit.checks.listForRef({
       owner: COURSE.github_org,
       repo: assignment.repo_slug+'-'+student.github,
-      ref: assignment.branch || 'master', //default to master
-      name: 'Travis CI - Branch', //what seems to be returned...
+      ref: assignment.branch || 'main', //default to main
     }).catch((err) => {
       console.log("Error accessing Githhub:", JSON.parse(err.message).message);
     })
 
+
     try {
-      if(checks.data.check_runs[0].conclusion === 'success'){
+      const sorted = checks.data.check_runs
+        .filter(check => check.name == "test") //only get Jest Test TODO: UPDATE ME!
+        .sort((a, b) => { //get most recent
+          return new Date(b.completed_at) == new Date(a.completed_at)
+        })
+  
+      if(sorted[0].conclusion === 'success'){
         console.log(`...complete!`)
         await markComplete(student, assignment);
         totalComplete++;
@@ -65,6 +87,8 @@ async function scoreSubmission(students, assignment){
     } catch(err) {
       console.log(`...INCOMPLETE`);
     }
+
+
   }
   console.log(`Complete submissions: ${totalComplete}/${students.length}`)
 }
@@ -72,7 +96,7 @@ async function scoreSubmission(students, assignment){
 //Mark a particular student's assignment as complete (100%) in Canvas
 async function markComplete(student, assignment) {
   let url = CANVAS_API_BASE + `/courses/${COURSE.canvas_id}/assignments/${assignment.canvas_id}/submissions/${student.canvas_id}`+`?access_token=${CANVAS_KEY}`;
-  let req = { method:'PUT', uri: url, form: {submission: {posted_grade:'100%'}} }; //request
+  let req = { method:'PUT', uri: url, form: {submission: {posted_grade:SCORE+'%'}} }; //request
   return request(req).catch((err) => {
     console.error("Error marking submission: ", err.message);
   });
@@ -103,8 +127,9 @@ async function getStudents(studentFile) {
 async function getEnrollments(){
   let PER_PAGE = 100;
   let url = CANVAS_API_BASE + `/courses/${COURSE.canvas_id}/enrollments?per_page=${PER_PAGE}&type=StudentEnrollment&access_token=${CANVAS_KEY}`
-  let req = { method:'GET', uri: url }; //request  
-  let enrollments = await request(req).then(JSON.parse);
+  let req = { method:'GET', uri: url, resolveWithFullResponse: true }; //request  
+  let enrollmentsRes = await request(req); //has full data
+  let enrollments = JSON.parse(enrollmentsRes.body); //get initial enrollments
   let studentIds = enrollments.map((item) => {
     return {
       canvas_id: item.user.id, 
@@ -112,5 +137,19 @@ async function getEnrollments(){
       display_name: item.user.sortable_name
     }
   });
+
+  //TODO: fix this for enrollments that are not paginated?? (an if statement probably)
+  let paginationLinks = enrollmentsRes.caseless.dict.link;
+  let nextLink = paginationLinks.split(",").filter((link) => link.includes("next"))[0]
+  let nextLinkUrl = nextLink.slice(1, nextLink.indexOf('>'))
+  enrollments = await request({method:'GET', uri:`${nextLinkUrl}&access_token=${CANVAS_KEY}`}).then(JSON.parse) //get the page
+  studentIds = studentIds.concat(enrollments.map((item) => {
+    return {
+      canvas_id: item.user.id, 
+      uwnetid: item.user.login_id,
+      display_name: item.user.sortable_name
+    }
+  }))
+
   return studentIds;
 }
