@@ -14,7 +14,7 @@
     "@octokit/auth-token": "^2.4.0",
     "@octokit/rest": "^15.9.4",
     "csv-parse": "^2.5.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "minimist": "^1.2.0",
     "request": "^2.87.0",
     "request-promise": "^4.2.2"
