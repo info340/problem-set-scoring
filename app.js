@@ -101,18 +101,19 @@ async function markComplete(student, assignment) {
 
 //read and compile student data (from Canvas and `students.csv`)
 async function getStudents(studentFile) {
-  let studentGitHubs = csvParse(fs.readFileSync(studentFile), {'columns':true});
+  let studentGitHubs = csvParse(fs.readFileSync(studentFile), {'columns':true, 'bom':true});
   let canvasIds = await getEnrollments();
   let students = canvasIds.map((student) => {
-    let match =  _.find(studentGitHubs, {uwnetid: student.uwnetid});
+    console.log(student.uwnetid);
+    let match =  _.find(studentGitHubs, {'uwnetid': student.uwnetid});
     return _.merge(student,match);
   })
   students = _.sortBy(students, ['display_name']); //ordering
 
   let githubLess = students.filter((s)=> s.github === undefined);
   if(githubLess.length > 0){
-    console.log("Enrolled students without a GitHub account:")
-    githubLess.forEach(console.log);
+    console.log(`${githubLess.length} enrolled students without a GitHub account:`)
+    githubLess.forEach((s) => console.log(s.uwnetid));
   }
 
   return students;
