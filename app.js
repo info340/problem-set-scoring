@@ -138,18 +138,19 @@ async function getEnrollments(){
     }
   });
 
-  //TODO: fix this for enrollments that are not paginated?? (an if statement probably)
   let paginationLinks = enrollmentsRes.caseless.dict.link;
   let nextLink = paginationLinks.split(",").filter((link) => link.includes("next"))[0]
-  let nextLinkUrl = nextLink.slice(1, nextLink.indexOf('>'))
-  enrollments = await request({method:'GET', uri:`${nextLinkUrl}&access_token=${CANVAS_KEY}`}).then(JSON.parse) //get the page
-  studentIds = studentIds.concat(enrollments.map((item) => {
-    return {
-      canvas_id: item.user.id, 
-      uwnetid: item.user.login_id,
-      display_name: item.user.sortable_name
-    }
-  }))
+  if(nextLink) { //if paginated
+    let nextLinkUrl = nextLink.slice(1, nextLink.indexOf('>'))
+    enrollments = await request({method:'GET', uri:`${nextLinkUrl}&access_token=${CANVAS_KEY}`}).then(JSON.parse) //get the page
+    studentIds = studentIds.concat(enrollments.map((item) => {
+      return {
+        canvas_id: item.user.id, 
+        uwnetid: item.user.login_id,
+        display_name: item.user.sortable_name
+      }
+    }))
+  }
 
   return studentIds;
 }
