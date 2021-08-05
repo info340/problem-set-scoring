@@ -4,26 +4,21 @@ const csvParse = require('csv-parse/lib/sync');
 const request = require('request-promise');
 const _ = require('lodash');
 
-//authentication setup
-// const Octokit = require('@octokit/rest')();
-// const { createTokenAuth } = require("@octokit/auth-token");
-// const auth = createTokenAuth(fs.readFileSync('./github.token').toString());
-// const authentication = await auth();
+const { Octokit } = require("octokit");
+const {
+  restEndpointMethods,
+} = require("@octokit/plugin-rest-endpoint-methods");
+const MyOctokit = Octokit.plugin(restEndpointMethods);
+const octokit = new MyOctokit({ 
+  auth: fs.readFileSync('./github.token').toString() 
+});
 
-// const octokit = new Octokit({
-//   auth: auth
-// });
+// const octokit = require('@octokit/rest')();
+// octokit.authenticate({
+//   type: 'oauth',
+//   token: fs.readFileSync('./github.token').toString()
+// })
 
-// // octokit.authenticate({
-// //   type: 'oauth',
-// //   token: fs.readFileSync('./github.token').toString()
-// // })
-
-const octokit = require('@octokit/rest')();
-octokit.authenticate({
-  type: 'oauth',
-  token: fs.readFileSync('./github.token').toString()
-})
 const CANVAS_API_BASE = 'https://canvas.uw.edu/api/v1';
 const CANVAS_KEY = fs.readFileSync('./canvas.key').toString();
 
@@ -61,12 +56,12 @@ async function scoreSubmission(students, assignment){
   for(student of students) {
     console.log(`Scoring ${assignment.repo_slug} for ${student.display_name}`);
 
-    const checks = await octokit.checks.listForRef({
+    const checks = await octokit.rest.checks.listForRef({
       owner: COURSE.github_org,
       repo: assignment.repo_slug+'-'+student.github,
       ref: assignment.branch || 'main', //default to main
     }).catch((err) => {
-      console.log("Error accessing Githhub:", JSON.parse(err.message).message);
+      console.log("Error accessing Githhub:", err.response.data.message);
     })
 
 
