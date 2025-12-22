@@ -1,46 +1,42 @@
 {
-  "canvas_id": 1458149,
-  "github_org": "info340-su21",
+  "canvas_id": 1547993,
+  "github_org": "info340a-sp22",
   "assignments": [
     {
       "repo_slug": "problem-01",
-      "canvas_id": 6440772
+      "canvas_id": 7184424
     },
     {
       "repo_slug": "problem-02",
-      "canvas_id": 6440773
+      "canvas_id": 7184425
     },
     {
       "repo_slug": "problem-03",
-      "canvas_id":6440774
+      "canvas_id":7184426
     },
     {
       "repo_slug": "problem-04",
-      "canvas_id":6440775
+      "canvas_id":7184427
     },
     {
       "repo_slug": "problem-05",
-      "canvas_id":6440776
+      "canvas_id":7184428
     },
     {
       "repo_slug": "problem-06",
-      "canvas_id":6440777
+      "canvas_id":7184429
     },
     {
       "repo_slug": "problem-07",
-      "canvas_id":6440778
+      "canvas_id":7184430
     },
     {
       "repo_slug":"problem-08",
-      "canvas_id":6440779
+      "canvas_id":7184431
     },
     {
       "repo_slug":"problem-09",
-      "canvas_id":6440780
-    },
-    {
-      "repo_slug":"problem-10",
-      "canvas_id":6440781
+      "canvas_id":7184432
     }
   ]
 }

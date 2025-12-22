@@ -21,7 +21,7 @@ const octokit = new MyOctokit({
 
 const CANVAS_API_BASE = 'https://canvas.uw.edu/api/v1';
 const CANVAS_KEY = fs.readFileSync('./canvas.key').toString();
-
+const USER_AGENT_STRING = 'CLI'; //adding user agent string per 
 
 /** Read Assignment Info **/
 
@@ -55,6 +55,8 @@ async function scoreSubmission(students, assignment){
   let totalComplete = 0;
   for(student of students) {
     console.log(`Scoring ${assignment.repo_slug} for ${student.display_name}`);
+
+    if(student.github) student.github = student.github.trim(); //trim if exists
 
     const checks = await octokit.rest.checks.listForRef({
       owner: COURSE.github_org,
@@ -91,10 +93,13 @@ async function scoreSubmission(students, assignment){
 //Mark a particular student's assignment as complete (100%) in Canvas
 async function markComplete(student, assignment) {
   let url = CANVAS_API_BASE + `/courses/${COURSE.canvas_id}/assignments/${assignment.canvas_id}/submissions/${student.canvas_id}`+`?access_token=${CANVAS_KEY}`;
-  let req = { method:'PUT', uri: url, form: {submission: {posted_grade:SCORE+'%'}} }; //request
-  return request(req).catch((err) => {
-    console.error("Error marking submission: ", err.message);
-  });
+  let req = { method:'PUT', uri: url, form: {submission: {posted_grade:SCORE+'%'}},
+    headers: { 'User-Agent': USER_AGENT_STRING}, //specify user agent
+  }; //request
+  return request(req)
+    .catch((err) => {
+      console.error("Error marking submission: ", err.message);
+    });
 }
 
 
@@ -104,7 +109,7 @@ async function getStudents(studentFile) {
   let studentGitHubs = csvParse(fs.readFileSync(studentFile), {'columns':true, 'bom':true});
   let canvasIds = await getEnrollments();
   let students = canvasIds.map((student) => {
-    console.log(student.uwnetid);
+    //console.log(student.uwnetid);
     let match =  _.find(studentGitHubs, {'uwnetid': student.uwnetid});
     return _.merge(student,match);
   })
@@ -123,7 +128,9 @@ async function getStudents(studentFile) {
 async function getEnrollments(){
   let PER_PAGE = 100;
   let url = CANVAS_API_BASE + `/courses/${COURSE.canvas_id}/enrollments?per_page=${PER_PAGE}&type=StudentEnrollment&access_token=${CANVAS_KEY}`
-  let req = { method:'GET', uri: url, resolveWithFullResponse: true }; //request  
+  let req = { method:'GET', uri: url, resolveWithFullResponse: true,
+    headers: { 'User-Agent': USER_AGENT_STRING}, //specify user agent
+  }; //request  
   let enrollmentsRes = await request(req); //has full data
   let enrollments = JSON.parse(enrollmentsRes.body); //get initial enrollments
   let studentIds = enrollments.map((item) => {
@@ -138,7 +145,7 @@ async function getEnrollments(){
   let nextLink = paginationLinks.split(",").filter((link) => link.includes("next"))[0]
   if(nextLink) { //if paginated
     let nextLinkUrl = nextLink.slice(1, nextLink.indexOf('>'))
-    enrollments = await request({method:'GET', uri:`${nextLinkUrl}&access_token=${CANVAS_KEY}`}).then(JSON.parse) //get the page
+    enrollments = await request({method:'GET', uri:`${nextLinkUrl}&access_token=${CANVAS_KEY}`, headers: { 'User-Agent': USER_AGENT_STRING},}).then(JSON.parse) //get the page
     studentIds = studentIds.concat(enrollments.map((item) => {
       return {
         canvas_id: item.user.id, 
